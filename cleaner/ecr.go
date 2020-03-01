@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver/v3"
-	"github.com/apex/log"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	log "github.com/sirupsen/logrus"
 )
 
 // Cleaner allows for pruning ECR images
