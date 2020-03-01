@@ -56,6 +56,7 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool)
 		return err
 	}
 
+	var totalSize int64
 	for _, repository := range repos {
 		repo := *repository.RepositoryName
 		log := log.WithField("repo", repo)
@@ -102,6 +103,21 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool)
 			}
 		}
 
+		var size int64
+		ids := make([]*ecr.ImageIdentifier, len(prune))
+		for index, item := range prune {
+			var tag *string
+			size += *item.ImageSizeInBytes / 1024 / 1024
+			if len(item.ImageTags) > 0 {
+				tag = item.ImageTags[0]
+			}
+			ids[index] = &ecr.ImageIdentifier{
+				ImageDigest: item.ImageDigest,
+				ImageTag:    tag,
+			}
+		}
+
+		totalSize += size
 		if dryRun {
 			if len(prune) > 0 {
 				log.Debugf("Would delete the following from %v", prune)
@@ -109,20 +125,8 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool)
 			total := len(imgs)
 			pruneCount := len(prune)
 			remainder := total - pruneCount
-			log.WithField("total", total).WithField("prune", pruneCount).WithField("remainder", remainder).Infof("")
+			log.WithField("total", total).WithField("prune", pruneCount).WithField("remainder", remainder).WithField("megabytes", size).Infof("")
 		} else {
-			ids := make([]*ecr.ImageIdentifier, len(prune))
-			for index, item := range prune {
-				var tag *string
-				if len(item.ImageTags) > 0 {
-					tag = item.ImageTags[0]
-				}
-				ids[index] = &ecr.ImageIdentifier{
-					ImageDigest: item.ImageDigest,
-					ImageTag:    tag,
-				}
-			}
-
 			_, err := c.client.BatchDeleteImage(&ecr.BatchDeleteImageInput{
 				ImageIds:       ids,
 				RepositoryName: &repo,
@@ -132,6 +136,7 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool)
 			}
 		}
 	}
+	log.Infof("total gigabytes %d", totalSize/1024)
 	return nil
 }
 
