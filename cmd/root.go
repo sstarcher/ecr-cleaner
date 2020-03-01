@@ -34,6 +34,7 @@ var days int
 var dryRun bool
 var removeSemver bool
 var debug bool
+var force bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -46,7 +47,7 @@ var rootCmd = &cobra.Command{
 			return err
 		}
 
-		return cleaner.Prune(time.Hour*24*time.Duration(days), !removeSemver, dryRun)
+		return cleaner.Prune(time.Hour*24*time.Duration(days), !removeSemver, dryRun, force)
 	},
 }
 
@@ -73,6 +74,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&dryRun, "dry-run", false, "simulate the deletion")
 	rootCmd.Flags().BoolVarP(&removeSemver, "no-semver", "n", false, "disables protection of semantic versioned tags")
 	rootCmd.Flags().BoolVar(&debug, "debug", false, "enables debug logging")
+	rootCmd.Flags().BoolVar(&force, "force", false, "force will remove images even if not images would remain")
 
 	log.SetLevel(log.InfoLevel)
 	if debug {

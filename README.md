@@ -5,3 +5,4 @@ This tool helps you clean up your ECR repository.  ECR is limited in how you can
 * The image must be over 90 days old unless `--days` is set.
 * Image tags that are [SemVer](https://semver.org/) compatible are kept by default set `--no-semver` to remove SemVer tags.  If the tag starts with a r or v those characters will be stripped and the remainder of the name will be tested for SemVer compatiability.
 * `--dry-run` allows you to run the command to see what the results would be.
+* By default it will skip any repo that would have all images removed set `--force` to remove them anyways

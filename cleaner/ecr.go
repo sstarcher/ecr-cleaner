@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -15,7 +16,7 @@ import (
 
 // Cleaner allows for pruning ECR images
 type Cleaner interface {
-	Prune(time.Duration, bool, bool) error
+	Prune(time.Duration, bool, bool, bool) error
 }
 
 type cleaner struct {
@@ -50,7 +51,7 @@ func New(region *string) (Cleaner, error) {
 }
 
 // Prune the ECR registry
-func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool) error {
+func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool, force bool) error {
 	repos, err := c.repos()
 	if err != nil {
 		return err
@@ -118,25 +119,35 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool)
 		}
 
 		totalSize += size
-		if dryRun {
-			if len(prune) > 0 {
-				log.Debugf("Would delete the following from %v", prune)
-			}
-			total := len(imgs)
-			pruneCount := len(prune)
-			remainder := total - pruneCount
-			log.WithField("total", total).WithField("prune", pruneCount).WithField("remainder", remainder).WithField("megabytes", size).Infof("")
-		} else {
-			_, err := c.client.BatchDeleteImage(&ecr.BatchDeleteImageInput{
-				ImageIds:       ids,
-				RepositoryName: &repo,
-			})
-			if err != nil {
-				log.WithError(err).Error("failed to batch delete images")
+		total := len(imgs)
+		pruneCount := len(prune)
+		remainder := total - pruneCount
+		log.WithField("total", total).
+			WithField("prune", pruneCount).
+			WithField("remainder", remainder).
+			WithField("size", fmt.Sprintf("%dmb", size)).
+			Infof("")
+		if remainder == 0 && !force {
+			log.Warnf("skipping as no images would remain, set --force")
+		} else if !dryRun {
+			batch := 100
+			for i := 0; i < len(ids); i += batch {
+				j := i + batch
+				if j > len(ids) {
+					j = len(ids)
+				}
+
+				_, err := c.client.BatchDeleteImage(&ecr.BatchDeleteImageInput{
+					ImageIds:       ids[i:j],
+					RepositoryName: &repo,
+				})
+				if err != nil {
+					log.WithError(err).Error("failed to batch delete images")
+				}
 			}
 		}
 	}
-	log.Infof("total gigabytes %d", totalSize/1024)
+	log.Infof("total size %dgb", totalSize/1024)
 	return nil
 }
 
