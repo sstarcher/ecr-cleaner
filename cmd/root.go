@@ -35,6 +35,7 @@ var dryRun bool
 var removeSemver bool
 var debug bool
 var force bool
+var repo string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -42,12 +43,17 @@ var rootCmd = &cobra.Command{
 	Short: "Cleanup images from AWS ECR",
 	Long:  `An opinionated tool to cleanup ECR images`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		log.SetLevel(log.InfoLevel)
+		if debug {
+			log.SetLevel(log.DebugLevel)
+		}
+
 		cleaner, err := cleaner.New(&region)
 		if err != nil {
 			return err
 		}
 
-		return cleaner.Prune(time.Hour*24*time.Duration(days), !removeSemver, dryRun, force)
+		return cleaner.Prune(time.Hour*24*time.Duration(days), !removeSemver, dryRun, force, repo)
 	},
 }
 
@@ -75,11 +81,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&removeSemver, "no-semver", "n", false, "disables protection of semantic versioned tags")
 	rootCmd.Flags().BoolVar(&debug, "debug", false, "enables debug logging")
 	rootCmd.Flags().BoolVar(&force, "force", false, "force will remove images even if not images would remain")
-
-	log.SetLevel(log.InfoLevel)
-	if debug {
-		log.SetLevel(log.DebugLevel)
-	}
+	rootCmd.Flags().StringVar(&repo, "repo", "", "specifies to run against a single repository")
 }
 
 // initConfig reads in config file and ENV variables if set.

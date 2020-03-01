@@ -16,7 +16,7 @@ import (
 
 // Cleaner allows for pruning ECR images
 type Cleaner interface {
-	Prune(time.Duration, bool, bool, bool) error
+	Prune(time.Duration, bool, bool, bool, string) error
 }
 
 type cleaner struct {
@@ -51,10 +51,16 @@ func New(region *string) (Cleaner, error) {
 }
 
 // Prune the ECR registry
-func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool, force bool) error {
-	repos, err := c.repos()
-	if err != nil {
-		return err
+func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool, force bool, repo string) error {
+	var repos []*ecr.Repository
+	if repo == "" {
+		var err error
+		repos, err = c.repos()
+		if err != nil {
+			return err
+		}
+	} else {
+		repos = append(repos, &ecr.Repository{RepositoryName: &repo})
 	}
 
 	var totalSize int64
@@ -71,6 +77,7 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool,
 			log.Info("no images")
 			continue
 		}
+
 		var prune []*ecr.ImageDetail
 		for _, image := range imgs {
 			if image != nil {
@@ -107,14 +114,9 @@ func (c *cleaner) Prune(age time.Duration, semanticVersioning bool, dryRun bool,
 		var size int64
 		ids := make([]*ecr.ImageIdentifier, len(prune))
 		for index, item := range prune {
-			var tag *string
 			size += *item.ImageSizeInBytes / 1024 / 1024
-			if len(item.ImageTags) > 0 {
-				tag = item.ImageTags[0]
-			}
 			ids[index] = &ecr.ImageIdentifier{
 				ImageDigest: item.ImageDigest,
-				ImageTag:    tag,
 			}
 		}
 
