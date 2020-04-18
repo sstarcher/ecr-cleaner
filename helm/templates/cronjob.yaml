@@ -20,22 +20,35 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
+          args:
+          {{- if .Values.config.days }}
+          - "--days"
+          - "{{ .Values.config.days}}"
+          {{- end }}
+          {{- if .Values.config.debug }}
+          - "--debug"
+          {{- end }}
+          {{- if .Values.config.dryRun }}
+          - "--dry-run"
+          {{- end }}
+          {{- if .Values.config.force }}
+          - "--force"
+          {{- end }}
+          {{- if .Values.config.noSemver }}
+          - "--no-semver"
+          {{- end }}
+          {{- if .Values.config.region }}
+          - "--region"
+          - "{{ .Values.config.region}}"
+          {{- end }}
+          {{- if .Values.config.repo }}
+          - "--repo"
+          - "{{ .Values.config.repo}}"
+          {{- end }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
