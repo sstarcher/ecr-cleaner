@@ -1,7 +1,7 @@
 image:
   repository: sstarcher/ecr-cleaner
   pullPolicy: IfNotPresent
-schedule: "*/1 * * * *"
+schedule: "0 0 * * *"
 
 config:
   days: # Specifies the number of days to keep an image
