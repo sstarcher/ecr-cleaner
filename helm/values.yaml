@@ -3,6 +3,15 @@ image:
   pullPolicy: IfNotPresent
 schedule: "*/1 * * * *"
 
+config:
+  days: # Specifies the number of days to keep an image
+  debug: false  #Enables debug logging
+  dryRun: true # Simulate the deletion
+  force: false # force will remove images even if not images would remain
+  noSemver: false # Disables protection of semantic versioned tags
+  region: # Specifies the AWS Region
+  repo: # Specifies a specific repo to run against
+
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
