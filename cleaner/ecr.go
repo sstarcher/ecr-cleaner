@@ -38,8 +38,10 @@ func New(region *string) (Cleaner, error) {
 			log.Debug("loading region from metadata service")
 			region, err := svc.Region()
 			if err != nil {
-				log.Infof("Using region from metadata service %s", region)
+				log.Infof("using region from metadata service %s", region)
 				sess.Config.WithRegion(region)
+			} else {
+				log.Warnf("unable to fetch region %v", err)
 			}
 		} else {
 			sess.Config.WithRegion("")
