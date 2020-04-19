@@ -33,19 +33,19 @@ func New(region *string) (Cleaner, error) {
 		sess.Config.WithRegion(*region)
 	} else if sess.Config.Region == nil || *sess.Config.Region == "" {
 		sess.Config.WithRegion("us-east-1")
+		region := ""
 		svc := ec2metadata.New(sess)
 		if svc.Available() {
 			log.Debug("loading region from metadata service")
-			region, err := svc.Region()
+			var err error
+			region, err = svc.Region()
 			if err != nil {
-				log.Infof("using region from metadata service %s", region)
-				sess.Config.WithRegion(region)
-			} else {
 				log.Warnf("unable to fetch region %v", err)
+			} else {
+				log.Infof("using region from metadata service %s", region)
 			}
-		} else {
-			sess.Config.WithRegion("")
 		}
+		sess.Config.WithRegion(region)
 	}
 
 	if sess.Config.Region == nil || *sess.Config.Region == "" {
