@@ -12,6 +12,13 @@ spec:
         {{- include "ecr-cleaner.selectorLabels" . | nindent 8 }}
     spec:
       template:
+        metadata:
+          labels:
+            {{- include "ecr-cleaner.selectorLabels" . | nindent 12 }}
+          {{- if .Values.podAnnotations }}
+          annotations:
+            {{ toYaml .Values.podAnnotations | nindent 12 }}
+          {{- end }}
         spec:
           {{- with .Values.imagePullSecrets }}
           imagePullSecrets:

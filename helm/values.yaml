@@ -12,6 +12,7 @@ config:
   region: # Specifies the AWS Region
   repo: # Specifies a specific repo to run against
 
+podAnnotations: {}
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

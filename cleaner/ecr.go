@@ -28,9 +28,11 @@ func New(region *string) (Cleaner, error) {
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
 	}))
+
 	if region != nil && *region != "" {
 		sess.Config.WithRegion(*region)
-	} else if sess.Config.Region == nil {
+	} else if sess.Config.Region == nil || *sess.Config.Region == "" {
+		sess.Config.WithRegion("us-east-1")
 		svc := ec2metadata.New(sess)
 		if svc.Available() {
 			log.Debug("loading region from metadata service")
@@ -39,10 +41,12 @@ func New(region *string) (Cleaner, error) {
 				log.Infof("Using region from metadata service %s", region)
 				sess.Config.WithRegion(region)
 			}
+		} else {
+			sess.Config.WithRegion("")
 		}
 	}
 
-	if sess.Config.Region == nil {
+	if sess.Config.Region == nil || *sess.Config.Region == "" {
 		return nil, errors.New("region must be specified")
 	}
 	return &cleaner{
