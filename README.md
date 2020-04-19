@@ -22,6 +22,35 @@ podAnnotations:
     iam.amazonaws.com/role: IAM_ROLE
 ```
 
+By default dry-run is turned on and nothing will be deleted.  Set the following to disable dry-run.
+```yaml
+config:
+    dryRun: false
+```
+
+### AWS IAM Policy
+
+The following permissions will be needed by ecr-cleaner to function.
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ecr-cleaner",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchDeleteImage",
+        "ecr:BatchGetImage",
+        "ecr:DescribeImages",
+        "ecr:ListImages",
+        "ecr:DescribeRepositories"
+      ]
+    }
+  ]
+}
+```
+
 ## Automated Docker Builds
 
 This is handled by docker hub's automated [build process](https://hub.docker.com/repository/docker/sstarcher/ecr-cleaner/).
