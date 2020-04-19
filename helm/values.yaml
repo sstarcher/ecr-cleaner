@@ -1,6 +1,6 @@
 image:
   repository: sstarcher/ecr-cleaner
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 schedule: "0 0 * * *"
 
 config:
