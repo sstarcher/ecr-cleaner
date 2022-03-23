@@ -1,5 +1,8 @@
 FROM --platform=$BUILDPLATFORM golang:1.14 as builder
 
+ARG TARGETARCH
+ARG TARGETOS
+
 WORKDIR /go/src/github.com/sstarcher/ecr-cleaner
 COPY . /go/src/github.com/sstarcher/ecr-cleaner
 
